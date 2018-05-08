@@ -40,21 +40,29 @@ class S(BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self):
+        print("GETTING")
 	try:
-		params = get_querystring(self.path)
-		if (params.get('debug', False) == 'reset'):
-			with open(COUNTER, 'w') as outfile: 
-				outfile.write(str(0))
-			self._set_headers()
-			self.wfile.write(0)
-			return
-		else: 
-			with open(COUNTER, 'r+') as infile: 
-				counter = int(infile.read().strip())
-				infile.seek(0)
-				infile.write(str(counter + 1))
-			self._set_headers()
-			self.wfile.write(counter)
+            if (self.path == '/'): 
+                with open(COUNTER, 'r+') as infile: 
+                        counter = int(infile.read().strip())
+                        infile.seek(0)
+                        infile.write(str(counter + 1))
+                self._set_headers()
+                self.wfile.write(counter)
+                return
+            elif (self.path == '/reset'): 
+                with open(COUNTER, 'w') as outfile: 
+                        outfile.write(str(0))
+                self._set_headers()
+                self.wfile.write(0)
+                return
+            elif (self.path == '/view'): 
+                with open(COUNTER, 'r') as infile: 
+                    counter = int(infile.read().strip())
+                    self._set_headers()
+                    self.wfile.write(counter)
+            else: 
+                self.send_error(400, "Page does not exist")
 	except Exception as e: 
 		self.send_error(500, "Internal server error: " + e.message)
 
