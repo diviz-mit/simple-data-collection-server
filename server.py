@@ -93,8 +93,10 @@ class S(BaseHTTPRequestHandler):
 def run(server_class=HTTPServer, handler_class=S, port=8000):
     # if we are on heroku, set the port according to heroku's instructions 
     ON_HEROKU = os.environ.get('ON_HEROKU')    
+    print("ON_HEROKU", ON_HEROKU)
     if ON_HEROKU: 
         port = int(os.environ.get('PORT'))
+        print("Found port via Heroku: %d", port)
 
     server_address = ('', port)
     httpd = server_class(server_address, handler_class)
