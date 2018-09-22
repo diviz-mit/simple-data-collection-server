@@ -69,26 +69,26 @@ class S(BaseHTTPRequestHandler):
     def do_HEAD(self):
         self._set_headers()
         
-#    def do_POST(self):
-#        # When it receives a POST request, it parses the data as json and creates a new file 
-#        # to save the data. 
-#        # the file name is fixed for rn. 
-#        try: 
-#            if (self.path == "/"): 
-#                self._set_headers()
-#                data = self.rfile.read(int(self.headers['Content-Length']))
-#                data = json.loads(data)
-#                with open("output.json", "w") as outfile: 
-#                    json.dump(data, outfile)
-#                print("GOT DATA")
-#                print(data)
-#                self.send_response(200)
-#            else: 
-#                self.send_error(400, "Page does not exist")
-#        except Exception as e: 
-#            self.send_error(500, "Internal server error: " + e.message)
-#
-#        
+    def do_POST(self):
+        # When it receives a POST request, it parses the data as json and creates a new file 
+        # to save the data. 
+        # the file name is fixed for rn. 
+        try: 
+            if (self.path == "/"): 
+                self._set_headers()
+                data = self.rfile.read(int(self.headers['Content-Length']))
+                data = json.loads(data)
+                with open("output.json", "w") as outfile: 
+                    json.dump(data, outfile)
+                print("GOT DATA")
+                print(data)
+                self.send_response(200)
+            else: 
+                self.send_error(400, "Page does not exist")
+        except Exception as e: 
+            self.send_error(500, "Internal server error: " + e.message)
+
+        
 def run(server_class=HTTPServer, handler_class=S, port=8000):
     server_address = ('', port)
     httpd = server_class(server_address, handler_class)
