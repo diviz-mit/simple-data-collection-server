@@ -17,6 +17,7 @@ Send a POST request::
 """
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import traceback
+import os
 
 COUNTER = "counter.txt"
 
@@ -90,6 +91,11 @@ class S(BaseHTTPRequestHandler):
 
         
 def run(server_class=HTTPServer, handler_class=S, port=8000):
+    # if we are on heroku, set the port according to heroku's instructions 
+    ON_HEROKU = os.environ.get('ON_HEROKU')    
+    if ON_HEROKU: 
+        port = int(os.environ.get('PORT'))
+
     server_address = ('', port)
     httpd = server_class(server_address, handler_class)
     print('Starting httpd on port %d...' % port)
