@@ -3,7 +3,7 @@ import boto3
 import os
 from pathlib import Path
 
-S3_BUCKET = os.environ.get('S3_BUCKET')
+S3_BUCKET = os.environ.get('SSS_BUCKET')
 
 def save_locally(key, data): 
     return _save_locally('data/', key, data)
@@ -24,8 +24,10 @@ def _save_locally(path, key, data):
     return filename
 
 def save_s3(key, data): 
-    if (!S3_BUCKET):
+    if not S3_BUCKET:
         raise RuntimeError("No S3 bucket supplied to put data in!") 
+    else: 
+        print("Sending to s3 bucket %s" % S3_BUCKET)
     s3 = boto3.resource('s3')
     bytestring = json.dumps(data).encode()
     r = s3.Object(S3_BUCKET, key).put(Body=bytestring, ContentType='application/json')
