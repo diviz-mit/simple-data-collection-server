@@ -1,1 +1,1 @@
-web: python3 server.py 8000
+web: python3 server.py

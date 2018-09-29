@@ -18,6 +18,10 @@ Send a POST request::
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import traceback
 import os
+import shutil
+import json
+from urllib.parse import parse_qs
+from save_data import save_locally, save_s3
 
 COUNTER = "counter.txt"
 
@@ -40,11 +44,25 @@ class S(BaseHTTPRequestHandler):
         self.send_header('Content-type', 'text/html')
         self.end_headers()
 
+    def _copyfile(self, source, dest): 
+        shutil.copyfileobj(source, dest);
+
     def do_GET(self):
         print("GETTING")
         self._set_headers()
         try:
             if (self.path == '/'): 
+                # show the main html stuff
+                index_path = "html/index.html"
+                try: 
+                    f = open(index_path, 'rb')
+                except IOError: 
+                    self.send_error(404, "File not found")
+                    return;
+                self._copyfile(f, self.wfile)
+                f.close() 
+                return;
+            elif (self.path == '/counter'): 
                 with open(COUNTER, 'r+') as infile: 
                         counter = int(infile.read().strip())
                         infile.seek(0)
@@ -75,12 +93,16 @@ class S(BaseHTTPRequestHandler):
         # to save the data. 
         # the file name is fixed for rn. 
         try: 
-            if (self.path == "/"): 
+            if (self.path == "/data"): 
                 self._set_headers()
+                assert self.headers['Content-type'] == 'application/x-www-form-urlencoded'
                 data = self.rfile.read(int(self.headers['Content-Length']))
-                data = json.loads(data)
-                with open("output.json", "w") as outfile: 
-                    json.dump(data, outfile)
+                data = data.decode("utf-8")
+                data = parse_qs(data)
+                print("DATA", data)
+                #filename = save_locally('output', data)
+                save_s3('output', data)
+                #print("GOT DATA: saved to file %s", filename)
                 print("GOT DATA")
                 print(data)
                 self.send_response(200)
@@ -92,8 +114,8 @@ class S(BaseHTTPRequestHandler):
         
 def run(server_class=HTTPServer, handler_class=S, port=8000):
     # if we are on heroku, set the port according to heroku's instructions 
-    ON_HEROKU = os.environ.get('ON_HEROKU')    
-    print("ON_HEROKU", ON_HEROKU)
+    ON_HEROKU = os.environ.get('ON_HEROKU', False)    
+    #print("ON_HEROKU", ON_HEROKU)
     if ON_HEROKU: 
         port = int(os.environ.get('PORT'))
         print("Found port via Heroku: %d", port)
