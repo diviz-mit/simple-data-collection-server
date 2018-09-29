@@ -20,10 +20,13 @@ import traceback
 import os
 import shutil
 import json
+import uuid
 from urllib.parse import parse_qs
+
 from save_data import save_locally, save_s3
 
 COUNTER = "counter.txt"
+INDEX = "html/index.html"
 
 def get_querystring(path): 
     pairs = {}
@@ -53,7 +56,7 @@ class S(BaseHTTPRequestHandler):
         try:
             if (self.path == '/'): 
                 # show the main html stuff
-                index_path = "html/index.html"
+                index_path = INDEX
                 try: 
                     f = open(index_path, 'rb')
                 except IOError: 
@@ -100,22 +103,21 @@ class S(BaseHTTPRequestHandler):
                 data = data.decode("utf-8")
                 data = parse_qs(data)
                 print("DATA", data)
-                #filename = save_locally('output', data)
-                save_s3('output', data)
-                #print("GOT DATA: saved to file %s", filename)
-                print("GOT DATA")
-                print(data)
+                key = str(uuid.uuid4())
+                save_s3(key, data)
+                print("SAVED DATA")
+                htmlstr = "<html><body><p>Success! Your response key: {}</p></body></html>".format(key)
                 self.send_response(200)
+                self.wfile.write(htmlstr.encode())
             else: 
                 self.send_error(400, "Page does not exist")
         except Exception as e: 
-            self.send_error(500, "Internal server error: " + e.message)
-
+            traceback.print_exc()
+            self.send_error(500, "Internal server error: {}".format(e))
         
 def run(server_class=HTTPServer, handler_class=S, port=8000):
     # if we are on heroku, set the port according to heroku's instructions 
     ON_HEROKU = os.environ.get('ON_HEROKU', False)    
-    #print("ON_HEROKU", ON_HEROKU)
     if ON_HEROKU: 
         port = int(os.environ.get('PORT'))
         print("Found port via Heroku: %d", port)
