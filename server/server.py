@@ -25,8 +25,8 @@ from urllib.parse import parse_qs
 
 from save_data import save_locally, save_s3
 
-COUNTER = "counter.txt"
-INDEX = "html/index.html"
+COUNTER = "server/counter.txt"
+INDEX = "ui/index.html"
 
 SAVE_LOCALLY=False
 
