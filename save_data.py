@@ -25,8 +25,8 @@ def _save_locally(path, key, data):
     return filename
 
 def save_s3(key, data): 
-    session = boto3.session.Session(profile_name="personal-heroku")
-    s3 = session.resource('s3')
+    #session = boto3.session.Session(profile_name="personal-heroku")
+    s3 = boto3.resource('s3')
     bytestring = json.dumps(data).encode()
     r = s3.Object(S3_BUCKET, key).put(Body=bytestring, ContentType='application/json')
     print(r)
