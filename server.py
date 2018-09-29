@@ -28,6 +28,8 @@ from save_data import save_locally, save_s3
 COUNTER = "counter.txt"
 INDEX = "html/index.html"
 
+SAVE_LOCALLY=False
+
 def get_querystring(path): 
     pairs = {}
     qstring = path.split('?')
@@ -104,7 +106,10 @@ class S(BaseHTTPRequestHandler):
                 data = parse_qs(data)
                 print("DATA", data)
                 key = str(uuid.uuid4())
-                save_s3(key, data)
+                if SAVE_LOCALLY: 
+                    save_locally(key, data)
+                else:
+                    save_s3(key, data)
                 print("SAVED DATA")
                 htmlstr = "<html><body><p>Success! Your response key: {}</p></body></html>".format(key)
                 self.send_response(200)
