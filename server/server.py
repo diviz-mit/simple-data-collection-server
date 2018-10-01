@@ -23,8 +23,7 @@ import json
 import uuid
 from urllib.parse import parse_qs
 
-from save_data import save_locally, save_s3
-
+from save_data import save_locally, save_s3 
 COUNTER = "server/counter.txt"
 INDEX = "ui/index.html"
 
@@ -109,9 +108,9 @@ class S(SimpleHTTPRequestHandler):
                 else:
                     save_s3(key, data)
                 print("SAVED DATA")
-                htmlstr = "<html><body><p>Success! Your response key: {}</p></body></html>".format(key)
+                response = json.dumps({'key': key})
                 self.send_response(200)
-                self.wfile.write(htmlstr.encode())
+                self.wfile.write(response.encode())
             else: 
                 self.send_error(400, "Page does not exist")
         except Exception as e: 
