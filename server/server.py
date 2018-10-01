@@ -99,7 +99,6 @@ class S(SimpleHTTPRequestHandler):
         try: 
             if (self.path == "/data"): 
                 self._set_headers()
-                assert self.headers['Content-type'] == 'application/x-www-form-urlencoded'
                 data = self.rfile.read(int(self.headers['Content-Length']))
                 data = data.decode("utf-8")
                 data = parse_qs(data)
