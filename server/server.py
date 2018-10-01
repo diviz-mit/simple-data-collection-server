@@ -15,7 +15,7 @@ Send a POST request::
     curl -d "foo=bar&bin=baz" http://localhost
 
 """
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import HTTPServer, SimpleHTTPRequestHandler
 import traceback
 import os
 import shutil
@@ -43,7 +43,13 @@ def get_querystring(path):
         pairs[key] = val
     return pairs
 
-class S(BaseHTTPRequestHandler):
+def strip_qstring(path): 
+    p = path.split('?')
+    if len(p) == 1: 
+        return path
+    return "".join(p[:-1])
+
+class S(SimpleHTTPRequestHandler):
     def _set_headers(self):
         self.send_response(200)
         self.send_header('Content-type', 'text/html')
@@ -54,39 +60,32 @@ class S(BaseHTTPRequestHandler):
 
     def do_GET(self):
         print("GETTING")
-        self._set_headers()
+        base_path = strip_qstring(self.path)
         try:
-            if (self.path == '/'): 
-                # show the main html stuff
-                index_path = INDEX
-                try: 
-                    f = open(index_path, 'rb')
-                except IOError: 
-                    self.send_error(404, "File not found")
-                    return;
-                self._copyfile(f, self.wfile)
-                f.close() 
-                return;
-            elif (self.path == '/counter'): 
+            if (base_path == '/counter'): 
+                self._set_headers()
                 with open(COUNTER, 'r+') as infile: 
                         counter = int(infile.read().strip())
                         infile.seek(0)
                         infile.write(str(counter + 1))
                 self.wfile.write(str(counter).encode())
                 return
-            elif (self.path == '/reset'): 
+            elif (base_path == '/reset'): 
+                self._set_headers()
                 with open(COUNTER, 'w') as outfile: 
                         outfile.write(str(0))
                 self.wfile.write(str(0).encode())
                 return
-            elif (self.path == '/view'): 
+            elif (base_path == '/view'): 
+                self._set_headers()
                 with open(COUNTER, 'r') as infile: 
                     counter = int(infile.read().strip())
                     self.wfile.write(str(counter).encode())
+                return
             else: 
-                self.send_error(400, "Page does not exist")
+                # override the default behavior of the simple handler
+                super(S, self).do_GET()
         except Exception as e: 
-            #print(e)
             traceback.print_exc()
             self.send_error(500, "Internal server error: {}".format(e))
 
